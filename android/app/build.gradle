@@ -78,13 +78,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.newhmapps.javascriptlearn"
+    namespace "com.newHMapps.swift"
     defaultConfig {
-        applicationId "com.newhmapps.javascriptlearn"
+        applicationId "com.newHMapps.swift"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.1"
+        versionCode 10
+        versionName "1.1.0"
     }
     signingConfigs {
         debug {
