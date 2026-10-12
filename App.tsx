@@ -3,13 +3,14 @@
  * A comprehensive React Native application for learning Swift programming
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar, useColorScheme, LogBox, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import mobileAds from 'react-native-google-mobile-ads';
 
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import { ProgressProvider } from './src/contexts/ProgressContext';
@@ -129,6 +130,17 @@ function AppNavigator() {
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(() => {
+    mobileAds()
+      .initialize()
+      .then(adapterStatuses => {
+        console.log('AdMob initialized', adapterStatuses);
+      })
+      .catch(error => {
+        console.log('AdMob initialization error', error);
+      });
+  }, []);
 
   return (
     <SafeAreaProvider>

@@ -73,3 +73,23 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+
+# أسرار وإعدادات محلية
+.env
+.env.*
+local.properties
+android/key.properties
+android/gradle.properties
+android/app/google-services.json
+android/app/agconnect-services.json
+
+# ملفات البناء والتبعيات
+node_modules/
+android/build/
+android/app/build/
+android/.gradle/
+android/app/.cxx/
+*.apk
+*.aab
+*.png
