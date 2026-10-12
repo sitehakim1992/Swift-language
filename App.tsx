@@ -3,17 +3,19 @@
  * A comprehensive React Native application for learning Swift programming
  */
 
-import React, { useEffect } from 'react';
-import { StatusBar, useColorScheme, LogBox, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, useColorScheme, LogBox, View, BackHandler } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import mobileAds from 'react-native-google-mobile-ads';
 
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import { ProgressProvider } from './src/contexts/ProgressContext';
+import PrivacyConsentModal from './src/components/PrivacyConsentModal';
 
 // Screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -26,6 +28,8 @@ import StatisticsScreen from './src/screens/StatisticsScreen';
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
 ]);
+
+const PRIVACY_KEY = 'privacy_policy_accepted_v1';
 
 // Navigation types
 export type RootStackParamList = {
@@ -131,7 +135,21 @@ function AppNavigator() {
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
+  // null = still reading storage, false = not accepted yet, true = accepted
+  const [accepted, setAccepted] = useState<boolean | null>(null);
+
+  // 1) Read the saved consent on startup
   useEffect(() => {
+    AsyncStorage.getItem(PRIVACY_KEY)
+      .then(value => setAccepted(value === 'true'))
+      .catch(() => setAccepted(false));
+  }, []);
+
+  // 2) Initialize AdMob ONLY after the user accepted the privacy policy
+  useEffect(() => {
+    if (accepted !== true) {
+      return;
+    }
     mobileAds()
       .initialize()
       .then(adapterStatuses => {
@@ -140,7 +158,20 @@ function App() {
       .catch(error => {
         console.log('AdMob initialization error', error);
       });
-  }, []);
+  }, [accepted]);
+
+  const handleAccept = async () => {
+    try {
+      await AsyncStorage.setItem(PRIVACY_KEY, 'true');
+    } catch (e) {
+      // if saving fails, the user can still continue for this session
+    }
+    setAccepted(true);
+  };
+
+  const handleDecline = () => {
+    BackHandler.exitApp();
+  };
 
   return (
     <SafeAreaProvider>
@@ -149,13 +180,25 @@ function App() {
         backgroundColor="transparent"
         translucent
       />
-      <ThemeProvider>
-        <ProgressProvider>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
-        </ProgressProvider>
-      </ThemeProvider>
+      {accepted === null ? (
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+      ) : accepted ? (
+        <ThemeProvider>
+          <ProgressProvider>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+          </ProgressProvider>
+        </ThemeProvider>
+      ) : (
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <PrivacyConsentModal
+            visible
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+          />
+        </View>
+      )}
     </SafeAreaProvider>
   );
 }
